@@ -22,3 +22,8 @@ __pycache__/
 # OS / Editors
 .DS_Store
 .vscode/
+
+# Build / packaging
+*.egg-info/
+build/
+dist/
