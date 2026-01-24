@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+. Python
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (never commit)
+/data/
+!data/.gitkeep
+
+# Artifacts
+/artifacts/
+!artifacts/models/.gitkeep
+!artifacts/reports/.gitkeep
+
+# OS / Editors
+.DS_Store
+.vscode/
