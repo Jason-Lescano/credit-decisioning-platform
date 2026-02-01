@@ -22,6 +22,7 @@ import pandas as pd
 @dataclass(frozen=True)
 class LendingClubPaths:
     """File locations for raw and processed data."""
+
     raw_dir: Path
     processed_path: Path
 
@@ -77,11 +78,10 @@ def load_and_normalize(paths: LendingClubPaths) -> pd.DataFrame:
     """
     accepted_path = find_accepted_file(paths.raw_dir)
 
-
     # Minimal "core" columns for Sprint 1.
     # We can expand later without breaking downstream code.
     usecols = {
-	"loan_status",
+        "loan_status",
         "loan_amnt",
         "term",
         "int_rate",
@@ -121,11 +121,7 @@ def load_and_normalize(paths: LendingClubPaths) -> pd.DataFrame:
     # Normalize percent fields like "13.56%" -> 13.56
     for col in ["int_rate", "revol_util"]:
         if col in df.columns:
-            df[col] = (
-                df[col].astype(str)
-                .str.replace("%", "", regex=False)
-                .replace("nan", pd.NA)
-            )
+            df[col] = df[col].astype(str).str.replace("%", "", regex=False).replace("nan", pd.NA)
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # Normalize term like " 36 months" -> 36
@@ -135,17 +131,24 @@ def load_and_normalize(paths: LendingClubPaths) -> pd.DataFrame:
 
     # Ensure numeric columns are numeric (best-effort)
     numeric_cols = [
-        "loan_amnt", "installment", "annual_inc", "dti",
-        "delinq_2yrs", "inq_last_6mths", "open_acc", "pub_rec",
-        "revol_bal", "total_acc",
+        "loan_amnt",
+        "installment",
+        "annual_inc",
+        "dti",
+        "delinq_2yrs",
+        "inq_last_6mths",
+        "open_acc",
+        "pub_rec",
+        "revol_bal",
+        "total_acc",
     ]
     for col in numeric_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
-    
+
     # Prevent leakage: loan_status is used to build the label, so it must NOT be a feature
     if "loan_status" in df.columns:
-    	df = df.drop(columns=["loan_status"])
+        df = df.drop(columns=["loan_status"])
 
     return df
 

@@ -27,6 +27,7 @@ from sklearn.metrics import brier_score_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
 import re
 
+
 def sanitize_feature_names(columns: list[str]) -> list[str]:
     """
     LightGBM does not allow some special JSON characters in feature names.
@@ -37,6 +38,7 @@ def sanitize_feature_names(columns: list[str]) -> list[str]:
         c2 = re.sub(r"[^0-9a-zA-Z_]+", "_", str(c))
         cleaned.append(c2)
     return cleaned
+
 
 def main() -> None:
     # ---- Paths (project conventions) ----
@@ -63,7 +65,6 @@ def main() -> None:
     X = pd.get_dummies(X, dummy_na=True)
     X.columns = sanitize_feature_names(list(X.columns))
     X = X.loc[:, ~X.columns.duplicated()]  # in case cleaning creates duplicates
-
 
     # ---- Train/Validation split ----
     X_train, X_val, y_train, y_val = train_test_split(
