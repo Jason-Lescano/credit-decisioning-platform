@@ -57,7 +57,7 @@ def main() -> None:
         raise ValueError("Missing required column: target")
 
     y = df["target"].astype(int)
-    X = df.drop(columns=["target"])
+    X = df.drop(columns=["target", "issue_d", "issue_month"])
 
     # ---- Baseline preprocessing ----
     # One-hot encoding is a simple, transparent baseline.

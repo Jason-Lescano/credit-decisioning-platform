@@ -80,7 +80,8 @@ def load_and_normalize(paths: LendingClubPaths) -> pd.DataFrame:
 
     # Minimal "core" columns for Sprint 1.
     # We can expand later without breaking downstream code.
-    usecols = {
+    USECOLS = [
+        "issue_d",
         "loan_status",
         "loan_amnt",
         "term",
@@ -103,15 +104,60 @@ def load_and_normalize(paths: LendingClubPaths) -> pd.DataFrame:
         "revol_util",
         "total_acc",
         "application_type",
+    ]
+
+    DTYPES = {
+        # numeric (use smaller dtypes)
+        "loan_amnt": "float32",
+        "int_rate": "float32",
+        "installment": "float32",
+        "annual_inc": "float32",
+        "dti": "float32",
+        "delinq_2yrs": "float32",
+        "inq_last_6mths": "float32",
+        "open_acc": "float32",
+        "pub_rec": "float32",
+        "revol_bal": "float32",
+        "revol_util": "float32",
+        "total_acc": "float32",
+        # categorical (big memory saver)
+        "term": "string",
+        "grade": "category",
+        "sub_grade": "category",
+        "emp_length": "category",
+        "home_ownership": "category",
+        "verification_status": "category",
+        "purpose": "category",
+        "addr_state": "category",
+        "application_type": "category",
+        "loan_status": "category",
+        # keep as string, parse later
+        "issue_d": "string",
     }
 
     # Load only columns in usecols to reduce memory footprint.
-    df = pd.read_csv(
+    chunks = []
+    for chunk in pd.read_csv(
         accepted_path,
         compression="infer",
+        usecols=USECOLS,
+        dtype=DTYPES,
         low_memory=False,
-        usecols=lambda c: c in usecols,
-    )
+        chunksize=200_000,
+    ):
+        chunk["issue_d"] = pd.to_datetime(chunk["issue_d"], format="%b-%Y", errors="coerce")
+        chunk = chunk.dropna(subset=["issue_d"])
+        chunk["issue_month"] = chunk["issue_d"].dt.to_period("M").astype(str)
+        chunks.append(chunk)
+
+    df = pd.concat(chunks, ignore_index=True)
+
+    # Parse issue date safely (e.g. "Dec-2015")
+    df["issue_d"] = pd.to_datetime(df["issue_d"], format="%b-%Y", errors="coerce")
+    df = df.dropna(subset=["issue_d"])
+
+    # Helpful for time split / grouping
+    df["issue_month"] = df["issue_d"].dt.to_period("M").astype(str)
 
     # Create target and drop rows without label (in-progress / ambiguous)
     df["target"] = build_target(df)
@@ -149,6 +195,19 @@ def load_and_normalize(paths: LendingClubPaths) -> pd.DataFrame:
     # Prevent leakage: loan_status is used to build the label, so it must NOT be a feature
     if "loan_status" in df.columns:
         df = df.drop(columns=["loan_status"])
+
+    # Keep issue_d for temporal validation (OOT)
+    if "issue_d" not in df.columns:
+        raise KeyError("issue_d not found in raw dataset. Needed for OOT validation.")
+
+    df["issue_d"] = pd.to_datetime(df["issue_d"], format="%b-%Y", errors="coerce")
+
+    parse_rate = df["issue_d"].notna().mean()
+    if parse_rate < 0.95:
+        raise ValueError(f"issue_d parse_rate too low: {parse_rate:.3f}. Check raw format.")
+
+    # Optional: month bucket for easy plots (YYYY-MM)
+    df["issue_month"] = df["issue_d"].dt.to_period("M").astype(str)
 
     return df
 

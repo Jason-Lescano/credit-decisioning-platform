@@ -30,3 +30,6 @@ dist/
 
 # Backups
 *.bak
+
+# Notebook outputs / artifacts
+notebooks/artifacts/
