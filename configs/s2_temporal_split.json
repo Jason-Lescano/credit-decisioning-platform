@@ -1,0 +1,28 @@
+{
+  "cut_val_start": "2016-01-01 00:00:00",
+  "cut_test_start": "2017-01-01 00:00:00",
+  "note": "Temporal split: train < val < test_oot. OOT is 24 months (2017-01 to 2018-12).",
+  "summary": [
+    {
+      "split": "train",
+      "n": 831403,
+      "min_issue_d": "2007-06-01 00:00:00",
+      "max_issue_d": "2015-12-01 00:00:00",
+      "default_rate": 0.1865677655721714
+    },
+    {
+      "split": "val",
+      "n": 298553,
+      "min_issue_d": "2016-01-01 00:00:00",
+      "max_issue_d": "2016-12-01 00:00:00",
+      "default_rate": 0.24685734191249126
+    },
+    {
+      "split": "test_oot",
+      "n": 243959,
+      "min_issue_d": "2017-01-01 00:00:00",
+      "max_issue_d": "2018-12-01 00:00:00",
+      "default_rate": 0.27202521735209606
+    }
+  ]
+}
